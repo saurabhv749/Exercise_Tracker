@@ -70,7 +70,7 @@ app.get('/api/users',function(req,res){
 app.post('/api/users/:_id/exercises',function(req,res){
   let {description,duration,date} = req.body
 
-  date = (date== undefined) ? new Date().toDateString() : new Date(date).toDateString()
+  date = (date== undefined || date=='') ? new Date().toDateString() : new Date(date).toDateString()
 
   let ex = {
     description,
