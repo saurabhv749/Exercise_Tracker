@@ -41,6 +41,8 @@ const User = mongoose.model('user',userSchema);
 
 //  adding new user to database
 app.post("/api/users",function(req,res){
+ req.body.username = req.body.username.trim()
+
   if(req.body.username =='' || req.body.username==undefined)
    res.send('Please fill name first')
  User.findOne({username:req.body.username},{username:1},function(err,doc){
@@ -86,7 +88,7 @@ app.post('/api/users/:_id/exercises',function(req,res){
 date = (date== ''|| date==undefined) ? new Date() : new Date(date)
 
   let ex = {
-    description,
+    description:req.body.description.trim(),
     duration: +duration,
     date:date.toDateString(),
   }
