@@ -132,16 +132,20 @@ User.findOne({_id:req.params._id},{__v:0,"log._id":0},function(err,doc){
    {  
       let filtered =[]
 
+
       if(from!== undefined && to!== undefined)
        {
          doc.log.map(d=>{
            if(d.date>= new Date(from) && d.date<= new Date(to) ){
-            filtered.push({description:d.description,duration:d.duration,date:new Date(d.date).toString().split('GMT')[0]})
+            filtered.push({description:d.description,duration:d.duration,date:new Date(d.date).toDateString().split('GMT')[0]})
             }
          })
        }
        else
-         filtered = doc.log
+         doc.log.map(d=>{
+           filtered.push({description:d.description,duration:d.duration,date:new Date(d.date).toDateString().split('GMT')[0]})
+
+         })
        
 
       if(limit!== undefined)
