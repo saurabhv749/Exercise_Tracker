@@ -27,7 +27,8 @@ useFindAndModify:true},(err)=>{
 
 //// schema for user 
 const userSchema = new mongoose.Schema({
-  username: String,
+  username:{type: String,
+  trim:true},
   count: {type: Number, default: 0},
   log : [{
   description:{ type:String , default: ""},
@@ -40,9 +41,18 @@ const User = mongoose.model('user',userSchema);
 
 //  adding new user to database
 app.post("/api/users",function(req,res){
-  let usrs = User.findOne({username:req.body.username},{username:1})
-      if(!usrs.username)           /// username not taken
-      {let x = new User({
+  if(req.body.username =='' || req.body.username==undefined)
+   res.send('Please fill name first')
+ User.findOne({username:req.body.username},{username:1},function(err,doc){
+
+      if(err)
+       console.log(err)
+      else
+      {
+      
+      if(doc==null || doc.username!==req.body.username)           /// username not taken
+      {
+        let x = new User({
       username: req.body.username
       })
 
@@ -56,6 +66,10 @@ app.post("/api/users",function(req,res){
       })}
     else
      res.send("Username already taken")
+      }
+  })
+
+
 
 })
 // //////  to get all the users registered to the database
@@ -69,23 +83,25 @@ app.get('/api/users',function(req,res){
 // ////// adding exercise fields to database of existing users
 app.post('/api/users/:_id/exercises',function(req,res){
   let {description,duration,date} = req.body
-
-  date = (date== undefined || date=='') ? new Date().toDateString() : new Date(date).toDateString()
+date = (date== ''|| date==undefined) ? new Date() : new Date(date)
 
   let ex = {
     description,
     duration: +duration,
-    date,
+    date:date.toDateString(),
   }
 
   User.updateOne({_id: req.params._id},
   {
-   $push : {log : ex },
+   $push : {log : [ex] },
    $inc : {count: 1 }
   },
   function(err,doc){
     if(err)
-    res.send('no such user exists. (Id Incorrect)')
+    {
+      console.log(err)
+     res.send('connection to database failed ')
+    }
     else{
         User.findOne({_id : req.params._id},function(err,data){  //only for username
           if(err)
@@ -113,14 +129,15 @@ User.findOne({_id:req.params._id},{__v:0,"log._id":0},function(err,doc){
  else if(doc === null)
    res.send('No Such User')
   else           ///// we found the user ///
-   {  console.log(doc)
+   {  
       let filtered =[]
 
       if(from!== undefined && to!== undefined)
        {
          doc.log.map(d=>{
-           if(d.date>= new Date(from) && d.date<= new Date(to) )
-            filtered.push(d)
+           if(d.date>= new Date(from) && d.date<= new Date(to) ){
+            filtered.push({description:d.description,duration:d.duration,date:new Date(d.date).toString().split('GMT')[0]})
+            }
          })
        }
        else
